@@ -1,0 +1,13 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+
+# Local config (if you ever split real credentials out)
+config/local.php
+
+# Logs
+*.log
