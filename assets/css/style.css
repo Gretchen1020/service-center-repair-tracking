@@ -97,6 +97,56 @@ button:hover, .btn:hover {
     font-size: 0.9rem;
 }
 
+.success {
+    background: #e6f4ea;
+    color: #1e7d34;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+}
+
+#customerSearch {
+    max-width: 320px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.data-table th,
+.data-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+}
+
+.data-table th {
+    background: #f0f2f5;
+    color: #1f3a5f;
+}
+
+.data-table .btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.inline-form {
+    display: inline-block;
+    margin: 0 0 0 6px;
+}
+
+.btn-danger {
+    background: #b71c1c;
+}
+
+.btn-danger:hover {
+    background: #8f1414;
+}
+
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

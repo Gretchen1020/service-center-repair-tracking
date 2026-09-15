@@ -42,3 +42,40 @@ Wingtrix Engineering Solutions Internship — 10-Day Build
 ### Testing Evidence
 
 - See `Day1_Testing_Log.docx`, `Day1_DB_Evidence.docx`, and `Day1_Login_Dashboard_Evidence.docx`
+
+---
+
+## Day 2 — Customer Module
+
+### Completed Today
+
+- `customers.php` — single-page Customer module covering full CRUD (Add, Edit, Delete) plus live search:
+  - Self-posting form (mirrors `login.php` pattern): hidden `customer_id` field distinguishes Add vs Update
+  - Edit mode triggered via `?edit=ID` query param, prefills the form from the DB
+  - Server-side validation: name + mobile required, mobile checked against a regex pattern; errors keep submitted values in the form
+  - Delete handled via `action=delete` + `delete_id`, wrapped in a try/catch for PDO error code `23000` (foreign key violation) so a customer with existing job cards can't be deleted — shows "Cannot delete this customer - they still have job cards on record." instead
+  - Redirect-after-POST (`Location: customers.php?saved=1` / `?deleted=1`) to avoid duplicate submits on refresh
+  - Uses PDO prepared statements throughout (SELECT / INSERT / UPDATE / DELETE)
+- `includes/customer_rows.php` — shared partial that renders `<tr>` rows, including the per-row Delete form with a `confirm()` dialog; reused by both the initial page load and the AJAX search endpoint to avoid duplicating markup
+- `ajax/search_customers.php` — session-protected AJAX endpoint; returns HTML row fragments filtered by name/mobile (`LIKE` query), or the full list when the search box is empty
+- `assets/js/customer-search.js` — debounced (300ms) `keyup` listener on the search box; fetches from the AJAX endpoint and swaps the table body content for live search-as-you-type
+- Client-side validation: `required` + `pattern` attributes on name/mobile inputs (native HTML5, consistent with Day 1's approach on the login form)
+- CSS additions: `.data-table`, `.success`, `.inline-form`, `.btn-danger`, search input width
+- Nav updated (`includes/header.php`) with a "Customers" link
+- **Bug fix (found via testing, TC-17):** `includes/auth.php`'s `requireLogin()` used a relative redirect (`Location: login.php`), which resolved incorrectly when called from a subfolder — a logged-out request to `ajax/search_customers.php` redirected to a nonexistent `ajax/login.php` (404) instead of the real login page. Fixed by introducing an `APP_BASE` constant and redirecting to an absolute root-relative path (`APP_BASE . '/login.php'`) instead.
+
+### Design Decisions
+
+- **One page, not three.** Chose a single `customers.php` handling list/search/add/edit/delete rather than separate `add_customer.php`/`edit_customer.php` pages, to keep the flat/simple structure consistent with Day 1 and avoid duplicating the form markup.
+- **Live search returns HTML, not JSON.** The AJAX endpoint reuses `includes/customer_rows.php` to render the same `<tr>` markup used on initial page load, so there's exactly one place that defines what a customer row looks like.
+- **Delete added despite initial Day 2 scope excluding it**, with FK protection so a customer already referenced by a job card can't be removed and silently orphan that job card.
+
+### Pending / Blocker
+
+- None blocking.
+- **Known cosmetic limitation (documented, not yet fixed):** After a successful Edit or Delete, the form card heading still reads "Add Customer" even though the message underneath says "Customer updated successfully" or "Customer deleted successfully" — the heading resets because `$editId` clears on the post-action redirect. Purely cosmetic; edit/delete themselves work correctly. Deferred to a later cleanup pass.
+- **Test-environment note (TC-16):** Typing a bare `customers.php` into the browser address bar while logged out triggered a browser web search instead of a real request to the app, initially looking like a failed redirect. Re-tested with the full URL (`http://localhost/service_center/customers.php`) and confirmed `requireLogin()` redirects correctly — not an app defect.
+
+### Testing Evidence
+
+- See `Day2_Customer_Module_Tests.docx`

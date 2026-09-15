@@ -13,6 +13,7 @@
     <?php if (isLoggedIn()): ?>
     <nav>
         <a href="dashboard.php">Dashboard</a>
+        <a href="customers.php">Customers</a>
         <a href="logout.php">Logout</a>
     </nav>
     <?php endif; ?>
