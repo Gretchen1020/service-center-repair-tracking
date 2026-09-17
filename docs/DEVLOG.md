@@ -6,7 +6,7 @@ Wingtrix Engineering Solutions Internship — 10-Day Build
 
 ## Day 1 — Setup & Login
 
-### Completed Today
+### Completed
 
 - Project folder structure created:
   - `config/` — database connection
@@ -47,7 +47,7 @@ Wingtrix Engineering Solutions Internship — 10-Day Build
 
 ## Day 2 — Customer Module
 
-### Completed Today
+### Completed 
 
 - `customers.php` — single-page Customer module covering full CRUD (Add, Edit, Delete) plus live search:
   - Self-posting form (mirrors `login.php` pattern): hidden `customer_id` field distinguishes Add vs Update
@@ -84,7 +84,7 @@ Wingtrix Engineering Solutions Internship — 10-Day Build
 
 ## Day 3 — Job Card Module
 
-### Completed Today
+### Completed
 
 - `jobcard.php` — single self-posting page for creating a new job card:
   - Customer dropdown populated from the `customers` table (name + mobile) — a job card can only be created against an existing customer
@@ -110,3 +110,43 @@ Wingtrix Engineering Solutions Internship — 10-Day Build
 ### Testing Evidence
 
 - See `Day3_JobCard_Module_Testing.docx` 
+
+---
+
+## Day 4 — Job List & Details Module
+
+### Completed
+
+- `jobs.php` — job list page joined against `customers` so each row shows a readable name/mobile instead of a bare `customer_id`; columns: Job No, Customer, Device, Status, Action (View)
+- `includes/job_rows.php` — shared partial rendering `<tr>` rows, reused by both the initial page load and the AJAX search endpoint (same pattern as Day 2's `customer_rows.php`)
+- `ajax/search_jobs.php` — session-protected AJAX endpoint; `LIKE` search across `job_no`, customer `name`, and customer `mobile` via the same `jobs` ⋈ `customers` join, returning HTML row fragments `assets/js/job-search.js` — debounced (300ms) live search-as-you-type, mirroring `customer-search.js`
+- `job_details.php` — single job's full record (`?id=X`): customer name/mobile/address, device, model, complaint, technician, estimate, final cost, paid amount, and balance; shows a "Job not found." message with a back-link for a bad or missing `id`
+- Nav updated (`includes/header.php`) with a "Jobs" link; one CSS rule added so `#jobSearch` shares `#customerSearch`'s width
+
+### Design Decisions
+
+- **Reused the Day 2 customer-module patterns** (shared row partial, AJAX returning HTML not JSON, debounced search) rather than inventing a new approach, to keep the codebase consistent.
+- **Balance is calculated in PHP** (`final_cost - paid_amount`) at display time, not stored as a column — per the project's no-derived-columns rule. Since editing final cost/paid amount is Day 6 scope, TC-09 (balance calculation) was tested against values set directly via SQL.
+- **No status filter/dropdown on the list page yet** — deliberately deferred to Day 5 (Repair Status), to keep Day 4 scoped to list + search + details.
+
+### Pending / Blocker
+
+- None blocking.
+
+### Pending Resolved
+
+- **Bug: "No jobs found" message never appeared on a zero-result search.**
+`job-search.js` checked `html.trim() === ''`, but `job_rows.php`'s empty branch always prints an HTML comment rather than a true empty string, so the check never passed. Fixed by checking `tableBody.querySelector('tr')` against the actual DOM after insertion instead of the raw response text. Caught via TC-07.
+- **Bug: `customer-search.js` (Day 2) had the identical "No jobs found" detection bug** 
+as the first item above — `html.trim() === ''` against `customer_rows.php`'s identical comment-on-empty output. Confirmed and fixed alongside the Day 4 fix, using the same `tableBody.querySelector('tr')` check.
+
+### Testing Evidence
+
+- See `Day4_JobList_Module_Testing.docx` (TC-01 to TC-14, all Pass)
+
+---
+
+## Naming Conventions
+
+- File names use **underscores**: `job_details.php`, `customer_rows.php`, `search_jobs.php`
+- JS file names use **hyphens**: `customer-search.js`, `job-search.js`, `jobcard-validate.js`

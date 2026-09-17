@@ -106,7 +106,8 @@ button:hover, .btn:hover {
     font-size: 0.9rem;
 }
 
-#customerSearch {
+#customerSearch,
+#jobSearch {
     max-width: 320px;
 }
 
