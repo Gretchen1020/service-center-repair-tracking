@@ -79,3 +79,34 @@ Wingtrix Engineering Solutions Internship — 10-Day Build
 ### Testing Evidence
 
 - See `Day2_Customer_Module_Tests.docx`
+
+---
+
+## Day 3 — Job Card Module
+
+### Completed Today
+
+- `jobcard.php` — single self-posting page for creating a new job card:
+  - Customer dropdown populated from the `customers` table (name + mobile) — a job card can only be created against an existing customer
+  - Required fields: customer selection, device name, complaint, estimate (non-negative number); model and technician are optional
+  - Server-side validation with an inline error list; submitted values are preserved in the form on error
+  - New job inserted with `status = 'Received'`, `final_cost = 0`, `paid_amount = 0` (final cost/payment handled on Day 6)
+  - Unique `job_no` generated right after insert: a placeholder (`'TEMP'`) is written first, then updated to a `JC-0001`-style number derived from the new row's auto-increment id via `lastInsertId()` — avoids a separate sequence table, keeping to the 3-table limit
+  - Redirect-after-POST (`jobcard.php?success=JC-000X`), same pattern as `customers.php`, to avoid duplicate submits on refresh
+  - Empty-customers edge case handled: the form is hidden and a message links to the Customer module if no customers exist yet
+  - Uses PDO prepared statements throughout (INSERT + UPDATE)
+- `assets/js/jobcard-validate.js` — client-side check for required fields (customer, device name, complaint) and a valid non-negative estimate before allowing submit
+
+### Design Decisions
+
+- **Single self-posting page again**, consistent with Day 1/2's flat structure — no separate create/list/detail files yet (job list + detail view is Day 4 scope).
+- **Customer picked via a plain `<select>` dropdown**, not the Day 2 live-search AJAX pattern — simplest fit for the current dataset size; can be revisited if the customer list grows large.
+- **`job_no` generated from the row's own auto-increment id** (insert-then-update) instead of a separate counter/sequence table, to respect the 3-table limit.
+
+### Pending / Blocker
+
+- No job list/detail view yet to confirm saved jobs visually (Day 4) — verified in the interim via direct SQL (`SELECT id, job_no FROM jobs ORDER BY id`).
+
+### Testing Evidence
+
+- See `Day3_JobCard_Module_Testing.docx` 

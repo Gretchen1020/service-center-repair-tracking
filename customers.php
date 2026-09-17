@@ -86,6 +86,17 @@ if (isset($_GET['deleted'])) {
     $success = 'Customer deleted successfully.';
 }
 
+// After a redirect from a successful save/delete, the form is back to its
+// empty Add state - showing "Add Customer" right next to a success message
+// like "Customer updated successfully" reads as a mismatch, so use a neutral
+// heading for that moment instead.
+$formHeading = 'Add Customer';
+if ($editId > 0) {
+    $formHeading = 'Edit Customer';
+} elseif (isset($_GET['saved']) || isset($_GET['deleted'])) {
+    $formHeading = 'Customer Form';
+}
+
 // ---- Initial customer list (full list on page load; JS takes over for live search) ----
 $customers = $pdo->query('SELECT id, name, mobile, address FROM customers ORDER BY name ASC')->fetchAll();
 
@@ -93,7 +104,7 @@ require 'includes/header.php';
 ?>
 
 <div class="card">
-    <h2><?= $editId > 0 ? 'Edit Customer' : 'Add Customer' ?></h2>
+    <h2><?= htmlspecialchars($formHeading) ?></h2>
 
     <?php if ($error): ?>
         <div class="error"><?= htmlspecialchars($error) ?></div>
