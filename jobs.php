@@ -3,15 +3,36 @@ require 'includes/auth.php';
 requireLogin();
 require 'config/db.php';
 
-// ---- Initial job list (full list on page load; JS takes over for live search) ----
+// Allowed statuses - same whitelist used on job_details.php's status update form.
+$statuses = ['Received', 'Checking', 'Repairing', 'Ready', 'Delivered'];
+
+$statusFilter = $_GET['status'] ?? '';
+if (!in_array($statusFilter, $statuses, true)) {
+    $statusFilter = '';
+}
+
+// ---- Initial job list (full list, or filtered by status; JS takes over for live search) ----
 // Joined with customers so the list shows a name/mobile instead of a bare customer_id.
-$jobs = $pdo->query(
-    'SELECT j.id, j.job_no, j.device_name, j.model, j.status,
-            c.name AS customer_name, c.mobile AS customer_mobile
-     FROM jobs j
-     JOIN customers c ON c.id = j.customer_id
-     ORDER BY j.id DESC'
-)->fetchAll();
+if ($statusFilter !== '') {
+    $stmt = $pdo->prepare(
+        'SELECT j.id, j.job_no, j.device_name, j.model, j.status,
+                c.name AS customer_name, c.mobile AS customer_mobile
+         FROM jobs j
+         JOIN customers c ON c.id = j.customer_id
+         WHERE j.status = ?
+         ORDER BY j.id DESC'
+    );
+    $stmt->execute([$statusFilter]);
+    $jobs = $stmt->fetchAll();
+} else {
+    $jobs = $pdo->query(
+        'SELECT j.id, j.job_no, j.device_name, j.model, j.status,
+                c.name AS customer_name, c.mobile AS customer_mobile
+         FROM jobs j
+         JOIN customers c ON c.id = j.customer_id
+         ORDER BY j.id DESC'
+    )->fetchAll();
+}
 
 require 'includes/header.php';
 ?>
@@ -20,6 +41,18 @@ require 'includes/header.php';
     <h2>Job List</h2>
 
     <input type="text" id="jobSearch" placeholder="Search by job no, customer name or mobile..." autocomplete="off">
+
+    
+    <form method="get" class="filter-form">
+        <label for="statusFilterSelect" class="filter-label">Filter by status</label>
+        <select name="status" id="statusFilterSelect" onchange="this.form.submit()">
+            <option value="">All</option>
+            <?php foreach ($statuses as $s): ?>
+                <option value="<?= htmlspecialchars($s) ?>" <?= $statusFilter === $s ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <noscript><button type="submit">Filter</button></noscript>
+    </form>
 
     <table class="data-table" id="jobTable">
         <thead>

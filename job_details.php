@@ -4,6 +4,22 @@ requireLogin();
 require 'config/db.php';
 
 $jobId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+
+// Allowed statuses for the repair status flow (Day 5). Kept as a PHP
+// whitelist rather than a DB lookup table, per the "only 3 tables" rule.
+$statuses = ['Received', 'Checking', 'Repairing', 'Ready', 'Delivered'];
+
+// ---- Handle status update (redirect-after-POST, same pattern as customers.php/jobcard.php) ----
+if ($jobId > 0 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'])) {
+    if (in_array($_POST['status'], $statuses, true)) {
+        $stmt = $pdo->prepare('UPDATE jobs SET status = ? WHERE id = ?');
+        $stmt->execute([$_POST['status'], $jobId]);
+        header('Location: job_details.php?id=' . $jobId . '&updated=1');
+        exit;
+    }
+    $statusError = 'Invalid status selected.';
+}
+
 $job   = null;
 $error = '';
 
@@ -37,6 +53,13 @@ require 'includes/header.php';
     <?php else: ?>
         <h2>Job Card - <?= htmlspecialchars($job['job_no']) ?></h2>
 
+                <?php if (isset($_GET['updated'])): ?>
+            <div class="success">Status updated successfully.</div>
+        <?php endif; ?>
+        <?php if (!empty($statusError)): ?>
+            <div class="error"><?= htmlspecialchars($statusError) ?></div>
+        <?php endif; ?>
+
         <table class="data-table">
             <tbody>
                 <tr><th>Job No</th><td><?= htmlspecialchars($job['job_no']) ?></td></tr>
@@ -55,8 +78,22 @@ require 'includes/header.php';
             </tbody>
         </table>
 
+        
+        <form method="post" action="job_details.php?id=<?= (int) $jobId ?>" id="statusForm" class="status-form">
+            <label for="statusSelect">Update Status</label>
+            <select name="status" id="statusSelect">
+                <?php foreach ($statuses as $s): ?>
+                    <option value="<?= htmlspecialchars($s) ?>" <?= $s === $job['status'] ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit">Update Status</button>
+        </form>
+
         <p><a href="jobs.php" class="btn">Back to Job List</a></p>
     <?php endif; ?>
 </div>
+
+
+<script src="assets/js/status-confirm.js"></script>
 
 <?php require 'includes/footer.php'; ?>

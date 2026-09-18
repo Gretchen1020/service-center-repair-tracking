@@ -7,28 +7,42 @@ require '../includes/auth.php';
 requireLogin();
 require '../config/db.php';
 
-$term = trim($_GET['q'] ?? '');
+// Same whitelist used by jobs.php and job_details.php.
+$statuses = ['Received', 'Checking', 'Repairing', 'Ready', 'Delivered'];
 
-if ($term === '') {
-    $jobs = $pdo->query(
-        'SELECT j.id, j.job_no, j.device_name, j.model, j.status,
-                c.name AS customer_name, c.mobile AS customer_mobile
-         FROM jobs j
-         JOIN customers c ON c.id = j.customer_id
-         ORDER BY j.id DESC'
-    )->fetchAll();
-} else {
-    $stmt = $pdo->prepare(
-        'SELECT j.id, j.job_no, j.device_name, j.model, j.status,
-                c.name AS customer_name, c.mobile AS customer_mobile
-         FROM jobs j
-         JOIN customers c ON c.id = j.customer_id
-         WHERE j.job_no LIKE ? OR c.name LIKE ? OR c.mobile LIKE ?
-         ORDER BY j.id DESC'
-    );
-    $like = '%' . $term . '%';
-    $stmt->execute([$like, $like, $like]);
-    $jobs = $stmt->fetchAll();
+$term = trim($_GET['q'] ?? '');
+$statusFilter = $_GET['status'] ?? '';
+if (!in_array($statusFilter, $statuses, true)) {
+    $statusFilter = '';
 }
+
+$where  = [];
+$params = [];
+
+if ($term !== '') {
+    $where[] = '(j.job_no LIKE ? OR c.name LIKE ? OR c.mobile LIKE ?)';
+    $like = '%' . $term . '%';
+    array_push($params, $like, $like, $like);
+}
+
+if ($statusFilter !== '') {
+    $where[] = 'j.status = ?';
+    $params[] = $statusFilter;
+}
+
+$sql = 'SELECT j.id, j.job_no, j.device_name, j.model, j.status,
+               c.name AS customer_name, c.mobile AS customer_mobile
+        FROM jobs j
+        JOIN customers c ON c.id = j.customer_id';
+
+if ($where) {
+    $sql .= ' WHERE ' . implode(' AND ', $where);
+}
+
+$sql .= ' ORDER BY j.id DESC';
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$jobs = $stmt->fetchAll();
 
 require '../includes/job_rows.php';

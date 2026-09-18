@@ -150,3 +150,37 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 
 - File names use **underscores**: `job_details.php`, `customer_rows.php`, `search_jobs.php`
 - JS file names use **hyphens**: `customer-search.js`, `job-search.js`, `jobcard-validate.js`
+
+---
+
+## Day 5 — Repair Status Module
+
+### Completed
+
+- `job_details.php` — added a status update section below the details table:
+  - `<select>` of the five allowed statuses (Received/Checking/Repairing/Ready/Delivered), defined as a PHP whitelist array (no new table, per the 3-table limit)
+  - Self-posting form, redirect-after-POST (`job_details.php?id=X&updated=1`), matching the pattern from `customers.php`/`jobcard.php`
+  - Server-side validation via `in_array($_POST['status'], $statuses, true)` — rejects any value outside the whitelist with an "Invalid status selected." error, protecting against a tampered/raw POST bypassing the dropdown
+- `assets/js/status-confirm.js` — `confirm()` dialog before the status-update form submits, naming the chosen status
+- `jobs.php` — added a "Filter by status" `<select>` (GET-based `?status=X`, `onchange="this.form.submit()"`), using the same whitelist; query switches between the full list and a `WHERE j.status = ?` prepared statement
+- `ajax/search_jobs.php` — updated to accept the same `status` param as the filter, combining it with the existing search-term `LIKE` condition via a dynamically-built `WHERE` clause (both conditions optional, ANDed together when both present) — live search now respects an active status filter instead of ignoring it
+- `assets/js/job-search.js` — updated to read the current filter dropdown's value and include it in every AJAX search request alongside the search term
+
+### Design Decisions
+
+- **Status whitelist kept as a PHP array**, not a lookup table — consistent with the 3-table limit, same approach as `jobcard.php`'s job_no generation avoiding an extra sequence table.
+- **Filter implemented as a full GET page reload**, not AJAX — simplest fit, and it composes with the existing AJAX search endpoint by sharing the same `status` query param rather than needing a second, separate filtering mechanism.
+- **AbortController over a manual request-counter** for cancelling superseded search requests — native browser API, no extra state to track.
+
+### Pending / Blocker
+
+- None blocking.
+
+### Pending Resolved
+
+- **Bug: live search ignored the active status filter.** `ajax/search_jobs.php` ran its own query with no knowledge of the filter, so typing in the search box while a status filter was active showed results across all statuses instead of just the filtered one. Fixed by having `job-search.js` send the filter's current value alongside the search term, and `search_jobs.php` build its `WHERE` clause from both together.
+- **Bug: fast typing/deleting in the search box could leave a stale result on screen.** Two AJAX requests fired close together (e.g. one for a typed letter, one right after deleting it) could resolve out of order — an older, slower response landing after a newer one and overwriting it with wrong results. Only reproduced at real typing speed, not when stepping through slowly in DevTools. Fixed with `AbortController`: any in-flight request is cancelled the moment a newer one is about to fire, so an older response can never land after a newer one.
+
+### Testing Evidence
+
+- See `Day5_Status_Module_Testing.docx`

@@ -164,7 +164,50 @@ button:hover, .btn:hover {
     color: #1f3a5f;
 }
 
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.filter-form .filter-label {
+    display: inline;
+    margin-bottom: 0;
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+.filter-form select {
+    width: auto;
+    margin-bottom: 0;
+}
+
+.status-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.status-form label {
+    margin-bottom: 6px;
+}
+
+.status-form select {
+    width: auto;
+    margin-bottom: 0;
+}
+
 @media (max-width: 600px) {
     .topbar { flex-direction: column; align-items: flex-start; }
     .topbar nav { margin-top: 8px; }
+
+    .filter-form,
+    .status-form {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
