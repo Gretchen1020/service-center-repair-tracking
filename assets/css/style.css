@@ -93,6 +93,7 @@ button:hover, .btn:hover {
     color: #b71c1c;
     padding: 10px;
     border-radius: 4px;
+    margin-top: 20px;
     margin-bottom: 14px;
     font-size: 0.9rem;
 }
@@ -102,6 +103,7 @@ button:hover, .btn:hover {
     color: #1e7d34;
     padding: 10px;
     border-radius: 4px;
+    margin-top: 20px;
     margin-bottom: 14px;
     font-size: 0.9rem;
 }

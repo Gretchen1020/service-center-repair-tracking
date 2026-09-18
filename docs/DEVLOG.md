@@ -184,3 +184,35 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 ### Testing Evidence
 
 - See `Day5_Status_Module_Testing.docx`
+
+---
+
+## Day 6 — Cost & Payment Module
+
+### Completed
+
+- `job_details.php` — added a second form below the status-update section for editing a job's Final Cost and Paid Amount:
+  - Self-posting form (`action=update_payment` hidden field), redirect-after-POST (`job_details.php?id=X&paymentUpdated=1`), same pattern as the status form
+  - Server-side validation: Final Cost and Paid Amount must both be non-negative; Paid Amount cannot exceed Final Cost — rejected outright with an inline error, no partial update applied
+  - Form fields are pre-filled from the current `final_cost`/`paid_amount` values on every load, so the admin edits the real stored numbers rather than starting from blank
+  - Balance (`final_cost - paid_amount`) continues to be calculated in PHP and never stored, unchanged since Day 4
+- `assets/js/cost-payment.js` — live balance preview: recalculates and displays the balance on every keystroke in either field (no page reload), turning red if the currently-typed values would produce a negative balance. Visual cue only — the real enforcement is server-side.
+- CSS fix: `.success` and `.error` banners (`assets/css/style.css`) had no `margin-top`, so they sat flush against the form above them (e.g. directly under the "Update Status" button). Added `margin-top: 20px;` to both rules.
+
+### Design Decisions
+
+- **Paid Amount is a single editable cumulative total, not a running payment log.** Consistent with the 3-table limit (no separate `payments` table) — the admin enters the new total-paid-to-date each time rather than an incremental add-on.
+- **Payment form lives on the same `job_details.php` page** as the status form, not a separate page, matching the existing pattern and keeping the project flat/simple.
+- **Overpayment blocked outright** rather than allowed through with a negative-balance/refund-due display, to keep validation simple and avoid a confusing UI state.
+
+### Pending / Blocker
+
+- None blocking.
+
+### Pending Resolved
+
+- N/A — no carryover blockers from Day 5.
+
+### Testing Evidence
+
+- See `Day6_Test_Payment_Module.docx`

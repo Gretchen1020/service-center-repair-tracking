@@ -20,6 +20,30 @@ if ($jobId > 0 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'
     $statusError = 'Invalid status selected.';
 }
 
+// ---- Handle cost & payment update (Day 6) ----
+$paymentErrors = [];
+if ($jobId > 0 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_payment') {
+    $finalCost  = (float) ($_POST['final_cost'] ?? -1);
+    $paidAmount = (float) ($_POST['paid_amount'] ?? -1);
+
+    if ($finalCost < 0) {
+        $paymentErrors[] = 'Final cost cannot be negative.';
+    }
+    if ($paidAmount < 0) {
+        $paymentErrors[] = 'Paid amount cannot be negative.';
+    }
+    if ($paidAmount > $finalCost) {
+        $paymentErrors[] = 'Paid amount cannot exceed final cost.';
+    }
+
+    if (empty($paymentErrors)) {
+        $stmt = $pdo->prepare('UPDATE jobs SET final_cost = ?, paid_amount = ? WHERE id = ?');
+        $stmt->execute([$finalCost, $paidAmount, $jobId]);
+        header('Location: job_details.php?id=' . $jobId . '&paymentUpdated=1');
+        exit;
+    }
+}
+
 $job   = null;
 $error = '';
 
@@ -53,7 +77,7 @@ require 'includes/header.php';
     <?php else: ?>
         <h2>Job Card - <?= htmlspecialchars($job['job_no']) ?></h2>
 
-                <?php if (isset($_GET['updated'])): ?>
+        <?php if (isset($_GET['updated'])): ?>
             <div class="success">Status updated successfully.</div>
         <?php endif; ?>
         <?php if (!empty($statusError)): ?>
@@ -78,7 +102,6 @@ require 'includes/header.php';
             </tbody>
         </table>
 
-        
         <form method="post" action="job_details.php?id=<?= (int) $jobId ?>" id="statusForm" class="status-form">
             <label for="statusSelect">Update Status</label>
             <select name="status" id="statusSelect">
@@ -89,11 +112,38 @@ require 'includes/header.php';
             <button type="submit">Update Status</button>
         </form>
 
+        <?php if (isset($_GET['paymentUpdated'])): ?>
+            <div class="success">Payment details updated.</div>
+        <?php endif; ?>
+        <?php if (!empty($paymentErrors)): ?>
+            <div class="error">
+                <?php foreach ($paymentErrors as $e): ?>
+                    <p><?= htmlspecialchars($e) ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" action="job_details.php?id=<?= (int) $jobId ?>" id="paymentForm" class="payment-form">
+            <input type="hidden" name="action" value="update_payment">
+
+            <label for="final_cost">Final Cost</label>
+            <input type="number" step="0.01" min="0" name="final_cost" id="final_cost"
+                   value="<?= htmlspecialchars($job['final_cost']) ?>" required>
+
+            <label for="paid_amount">Paid Amount (total to date)</label>
+            <input type="number" step="0.01" min="0" name="paid_amount" id="paid_amount"
+                   value="<?= htmlspecialchars($job['paid_amount']) ?>" required>
+
+            <p><strong>Balance: &#8377;<span id="balanceDisplay"><?= number_format((float) $balance, 2) ?></span></strong></p>
+
+            <button type="submit">Update Payment</button>
+        </form>
+
         <p><a href="jobs.php" class="btn">Back to Job List</a></p>
     <?php endif; ?>
 </div>
 
-
 <script src="assets/js/status-confirm.js"></script>
+<script src="assets/js/cost-payment.js"></script>
 
 <?php require 'includes/footer.php'; ?>
