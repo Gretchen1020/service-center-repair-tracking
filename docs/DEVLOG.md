@@ -246,3 +246,43 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 ### Testing Evidence
 
 - See `Day7_Dashboard_Module_Testing.docx`
+
+---
+
+## Day 8 — Print Job Card Module
+
+### Completed
+
+- `print_job.php` — print-friendly job card / receipt (`?id=X`), session-protected via the existing `requireLogin()`:
+  - `id` validated with `filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)` (positive whole numbers only), then fetched with a prepared statement over the same `jobs` ⋈ `customers` join used by `job_details.php`
+  - Standalone page (does not include `header.php`/nav) showing: Job No + status, customer name/mobile/address, device, model, technician, complaint, estimate, final cost, paid amount, and balance, followed by Customer/Authorized signature lines
+  - Balance is calculated in PHP (`final_cost - paid_amount`), never stored — unchanged rule from Day 4/6; amounts formatted with the ₹ symbol to match `job_details.php`
+  - Empty optional fields (model, technician, address) display `-`; every value is passed through `htmlspecialchars()`; complaint line breaks are preserved
+  - A missing, non-numeric, negative, or non-existent id shows a "Job not found" message with a back-link to `jobs.php`
+  - Page `<title>` set to `JobCard_<job_no>` so "Save as PDF" prefills the filename
+- `assets/css/print.css` — separate stylesheet for the print page: screen styling (toolbar, bordered sheet, stacked header under 600px width) plus an `@media print` block (A4, toolbar hidden via `.no-print`, no page break inside a section or the signature block)
+- `assets/js/job-print.js` — wires the Print button to `window.print()`, and fills a "Printed: date, time" line from the viewer's local clock on load and again on the `beforeprint` event
+- `job_details.php` — added a "Print Job Card" link beside "Back to Job List", opening `print_job.php?id=X` in a new tab
+
+### Design Decisions
+
+- **Separate `print.css` and a standalone page**, rather than a print stylesheet bolted onto `style.css` or a print mode of `job_details.php` — the printout needs none of the nav, forms, or status/payment controls, so a dedicated page keeps both the markup and the print CSS small.
+- **`@page { margin: 0 }` with the visible margin supplied by 15mm of body padding.** The first test print showed the browser's own header/footer (date/time, page title, URL, page number) sitting outside the content margin. A zero page margin makes the browser drop them entirely, and the date/time is now printed as part of the card itself so it lines up with the content.
+- **Printed timestamp via JS (`toLocaleString()`), not PHP `date()`** — PHP would report the server's timezone and the time the page was loaded, not the time of printing; JS uses the viewer's local time and refreshes on `beforeprint`.
+- **Filename set through the page `<title>`** — the only hook a web page has over the default "Save as PDF" filename.
+- **`job-print.js` named with a hyphen**, following the JS naming convention recorded after Day 4.
+
+### Pending / Blocker
+
+- None blocking.
+- **Known limitation (documented, not a defect):** the prefilled filename only works with Chrome's own **Save as PDF** destination. Windows' **Microsoft Print to PDF** is a printer driver that opens its own save dialog and never receives the page title, so its filename box always starts empty. Recorded in the testing doc (TC-17 precondition) rather than left as an open bug.
+
+### Pending Resolved
+
+- **Print output had misaligned browser header/footer text.** The first test PDF showed the date/time at the top left outside the content margin, the page title ("Job Card JC-0011") at the top centre, and the URL and "1/1" at the bottom. Fixed with the zero `@page` margin + body padding change above, then the date/time was re-added inside the page as the "Printed:" line.
+- **Signature space was too tight** against the Cost & Payment table in the first print. Increased the gap above the signature lines (30mm in print, 90px on screen).
+- **Empty filename box when saving (test-environment note, not a code bug).** Saving from the print dialog showed an empty "File name" field even though the title was already set — the Destination was Microsoft Print to PDF. Switching to Save as PDF prefilled `JobCard_JC-0011` as expected.
+
+### Testing Evidence
+
+- See `Day8_PrintJobCard_Module_Testing.docx` 

@@ -139,7 +139,10 @@ require 'includes/header.php';
             <button type="submit">Update Payment</button>
         </form>
 
-        <p><a href="jobs.php" class="btn">Back to Job List</a></p>
+        <p>
+            <a href="print_job.php?id=<?= (int) $jobId ?>" class="btn" target="_blank">Print Job Card</a>
+            <a href="jobs.php" class="btn">Back to Job List</a>
+        </p>
     <?php endif; ?>
 </div>
 
