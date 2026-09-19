@@ -216,3 +216,33 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 ### Testing Evidence
 
 - See `Day6_Test_Payment_Module.docx`
+
+---
+
+## Day 7 — Dashboard Module
+
+### Completed
+
+- `dashboard.php` — replaced the Day 1 placeholder with the real dashboard, session-protected via the existing `requireLogin()`:
+  - Total Customers and Total Jobs counts (`COUNT(*)` on `customers` and `jobs`)
+  - Per-status counts for all five statuses (Received/Checking/Repairing/Ready/Delivered), grouped via `SELECT status, COUNT(*) ... GROUP BY status` and mapped onto a PHP-side whitelist array so a status with zero jobs still shows a 0 card
+  - Total Pending Payment: `SUM(final_cost - paid_amount)` across jobs where `final_cost > paid_amount` — reuses the same balance formula as `job_details.php`, just aggregated
+  - All figures are calculated live on every page load; nothing is pre-aggregated or stored, consistent with the no-derived-columns rule already applied to per-job balance
+- CSS: `.dashboard-cards` grid block appended to `assets/css/style.css` (responsive `auto-fit` grid of count cards, plus a `.highlight` style for the Pending Payment card)
+
+### Design Decisions
+
+- **Status cards are hard-whitelisted to the same five statuses** used in `job_details.php`'s status dropdown and `jobs.php`'s filter, rather than displaying whatever distinct values happen to exist in the `status` column — keeps the dashboard's status breakdown in lockstep with the one place status values are allowed to come from.
+- **Pending Payment reuses the existing per-job balance formula** (`final_cost - paid_amount`) rather than introducing a second definition of "balance" — the dashboard total and a single job's balance on `job_details.php` will always agree.
+
+### Pending / Blocker
+
+- None blocking.
+
+### Pending Resolved
+
+- N/A — no carryover blockers from Day 6.
+
+### Testing Evidence
+
+- See `Day7_Dashboard_Module_Testing.docx`

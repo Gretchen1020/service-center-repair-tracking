@@ -213,3 +213,29 @@ button:hover, .btn:hover {
         align-items: flex-start;
     }
 }
+
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.dashboard-cards .card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.dashboard-cards .card h2 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+.dashboard-cards .card.highlight {
+    background: #fff8e1;
+    border-color: #ffca28;
+}
