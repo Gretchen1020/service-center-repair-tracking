@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin = $stmt->fetch();
 
         if ($admin && password_verify($password, $admin['password'])) {
+            session_regenerate_id(true); // new session ID on login (prevents session fixation)
             $_SESSION['admin_id']       = $admin['id'];
             $_SESSION['admin_username'] = $admin['username'];
             header('Location: dashboard.php');

@@ -40,7 +40,7 @@ require 'includes/header.php';
 <div class="card">
     <h2>Job List</h2>
 
-    <input type="text" id="jobSearch" placeholder="Search by job no, customer name or mobile..." autocomplete="off">
+    <input type="text" id="jobSearch" placeholder="Job no, name or mobile..." autocomplete="off">
 
     
     <form method="get" class="filter-form">
@@ -54,7 +54,8 @@ require 'includes/header.php';
         <noscript><button type="submit">Filter</button></noscript>
     </form>
 
-    <table class="data-table" id="jobTable">
+    <div class="table-wrap">
+    <table class="data-table stack-table" id="jobTable">
         <thead>
             <tr>
                 <th>Job No</th>
@@ -68,6 +69,7 @@ require 'includes/header.php';
             <?php include 'includes/job_rows.php'; ?>
         </tbody>
     </table>
+    </div>
     <p id="noJobResults" style="display:none; color:#666;">No jobs found.</p>
 </div>
 

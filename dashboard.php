@@ -48,3 +48,5 @@ include 'includes/header.php';
         <p>Pending Payment</p>
     </div>
 </div>
+
+<?php require 'includes/footer.php'; ?>

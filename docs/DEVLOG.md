@@ -215,7 +215,7 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 
 ### Testing Evidence
 
-- See `Day6_Test_Payment_Module.docx`
+- See `Day6_Payment_Module_Testing.docx`
 
 ---
 
@@ -286,3 +286,51 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 ### Testing Evidence
 
 - See `Day8_PrintJobCard_Module_Testing.docx` 
+
+---
+
+## Day 9 — Testing & Responsive Polish
+
+### Completed Today
+
+- Responsive pass across all 7 pages at 360px (phone), 768px (tablet) and 1280px (desktop) (assets/css/style.css)
+  - Customer and job lists become labelled cards on phones instead of scrolling sideways (.stack-table + data-label attributes in includes/customer_rows.php / includes/job_rows.php); tablet/desktop keep the normal table
+  - Nav links wrap with a gap; buttons and nav links get at least a 40px tap target on phones
+  - Job details table uses a fixed layout so long text wraps; status/payment forms and buttons go full width on phones
+  - Dashboard cards go two per row on phones; duplicate .dashboard-cards/.card rules merged
+  - jobcard.php form wrapped in .card to match the other pages
+- Validation fixes found while testing:
+  - job_details.php payment update - final_cost/paid_amount must be numeric and at most 99,999,999.99; UPDATE wrapped in try/catch; rejected submits keep what was typed instead of reverting
+  - customers.php - name capped at 100 characters, address at 255, matching the schema columns
+  - jobcard.php - customer id must be a positive integer; device name/model/technician capped at 100 characters; estimate capped at 99,999,999.99
+  - jobcard.php - error list changed from <ul><li> to <div> blocks, matching the style used on every other page (no bullet points)
+- Session/structure fixes: session_regenerate_id(true) on login; APP_BASE in includes/auth.php now computed from the folder's position under the document root instead of hardcoded, so the project works under any folder name; dashboard.php now includes includes/footer.php
+- Print job card page (print_job.php, assets/css/print.css) kept as a fixed 800px print-preview rather than reflowed to fit the phone width, since a print preview should represent the actual printed page. On phones it now scrolls both sideways and vertically; long text wraps inside table cells so it can't force the page wider than necessary; a small (12px) margin is kept on both sides via a min-width on body; a minimum-scale=1.0 viewport tag stops the browser auto-zooming the page out, which removes a large empty area that used to appear below the sheet. Actual printing is unchanged (A4, unaffected by any of the above)
+- CSS/JS cache-busting: style.css and print.css links now carry a ?v=<file modified time> so browsers pick up changes without a manual hard refresh
+- Day9_Responsive_Regression_Module_Testing.docx - 30 test cases across 6 sections (phone layout, tablet/desktop/zoom, validation, security/session, end-to-end, sample data/fresh install)
+
+### Design Decisions
+
+- Rows become cards on phones instead of scrolling the table sideways, so the Edit/Delete/View buttons stay on screen instead of sitting off to the right where they're easy to miss.
+- The print page keeps its fixed print layout on phones rather than reflowing, so the on-screen preview matches what actually prints; the trade-off is that a phone user scrolls to see the whole sheet instead of seeing it shrink to fit.
+- Server-side checks are the real guard everywhere; maxlength/required attributes are only a convenience, since a hand-made POST bypasses them.
+- APP_BASE is computed with the old hardcoded value kept as a fallback.
+
+### Pending / Blocker
+
+- None blocking.
+- Known limitations (documented, not defects): no CSRF tokens (out of scope for this build); a failed job insert still consumes an auto-increment id, so job numbers can skip; docs/schema.sql does not reset existing data on a repeat import (see Pending Resolved).
+
+### Pending Resolved
+
+- Payment form wiped stored amounts on blank/non-numeric input - fixed with numeric validation.
+- Huge amounts and long names/addresses caused uncaught PHP exceptions (HTTP 500) - fixed with length/range checks matching the schema.
+- Login redirect broke when the project folder wasn't named service_center - fixed via computed APP_BASE.
+- Session ID not renewed at login; dashboard.php missing its footer include - both fixed.
+- jobcard.php error messages showed as a bulleted list, inconsistent with every other page - changed to plain div blocks.
+- Print page opened wider than the phone screen and left a large empty area below the sheet on phones - resolved by keeping the fixed layout with horizontal scroll and adding minimum-scale=1.0 to the viewport tag.
+- docs/schema.sql now uses CREATE TABLE IF NOT EXISTS and INSERT IGNORE, so re-running it doesn't error out or duplicate the admin login (does not reset existing data - use DROP DATABASE first for a clean slate).
+
+### Testing Evidence
+
+- See `Day9_Responsive_Regression_Module_Testing.docx` 

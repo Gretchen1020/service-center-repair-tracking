@@ -6,18 +6,20 @@ CREATE DATABASE IF NOT EXISTS service_center_db;
 USE service_center_db;
 
 -- 1. ADMINS
-CREATE TABLE admins (
+CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );
 
 -- Sample admin login -> username: admin | password: admin123
-INSERT INTO admins (username, password) VALUES
+-- INSERT IGNORE: skips this row if 'admin' already exists (re-running the
+-- script won't error out or create a second admin).
+INSERT IGNORE INTO admins (username, password) VALUES
 ('admin', '$2b$10$00.4fE4Z5.Dy5QdpMk5jreIaJ5FG0OLuX3au/19PVJvc8dT9AUtLu');
 
 -- 2. CUSTOMERS
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     mobile VARCHAR(20) NOT NULL,
@@ -25,7 +27,7 @@ CREATE TABLE customers (
 );
 
 -- 3. JOBS
-CREATE TABLE jobs (
+CREATE TABLE IF NOT EXISTS jobs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     job_no VARCHAR(20) NOT NULL UNIQUE,
     customer_id INT NOT NULL,

@@ -12,11 +12,11 @@ else:
     foreach ($jobs as $j):
 ?>
     <tr>
-        <td><?= htmlspecialchars($j['job_no']) ?></td>
-        <td><?= htmlspecialchars($j['customer_name']) ?><br>
+        <td data-label="Job No"><?= htmlspecialchars($j['job_no']) ?></td>
+        <td data-label="Customer"><?= htmlspecialchars($j['customer_name']) ?><br>
             <small><?= htmlspecialchars($j['customer_mobile']) ?></small></td>
-        <td><?= htmlspecialchars($j['device_name']) ?><?= $j['model'] ? ' (' . htmlspecialchars($j['model']) . ')' : '' ?></td>
-        <td><?= htmlspecialchars($j['status']) ?></td>
+        <td data-label="Device"><?= htmlspecialchars($j['device_name']) ?><?= $j['model'] ? ' (' . htmlspecialchars($j['model']) . ')' : '' ?></td>
+        <td data-label="Status"><?= htmlspecialchars($j['status']) ?></td>
         <td>
             <a href="job_details.php?id=<?= (int) $j['id'] ?>" class="btn">View</a>
         </td>

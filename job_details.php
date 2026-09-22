@@ -22,25 +22,48 @@ if ($jobId > 0 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'
 
 // ---- Handle cost & payment update (Day 6) ----
 $paymentErrors = [];
+$maxAmount = 99999999.99; // DECIMAL(10,2) limit
 if ($jobId > 0 && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_payment') {
-    $finalCost  = (float) ($_POST['final_cost'] ?? -1);
-    $paidAmount = (float) ($_POST['paid_amount'] ?? -1);
+    $rawFinal = trim((string) ($_POST['final_cost'] ?? ''));
+    $rawPaid  = trim((string) ($_POST['paid_amount'] ?? ''));
+    $finalCost  = null;
+    $paidAmount = null;
 
-    if ($finalCost < 0) {
-        $paymentErrors[] = 'Final cost cannot be negative.';
+    if (!is_numeric($rawFinal)) {
+        $paymentErrors[] = 'Final cost must be a valid number.';
+    } else {
+        $finalCost = (float) $rawFinal;
+        if ($finalCost < 0) {
+            $paymentErrors[] = 'Final cost cannot be negative.';
+        } elseif ($finalCost > $maxAmount) {
+            $paymentErrors[] = 'Final cost is too large.';
+        }
     }
-    if ($paidAmount < 0) {
-        $paymentErrors[] = 'Paid amount cannot be negative.';
+
+    if (!is_numeric($rawPaid)) {
+        $paymentErrors[] = 'Paid amount must be a valid number.';
+    } else {
+        $paidAmount = (float) $rawPaid;
+        if ($paidAmount < 0) {
+            $paymentErrors[] = 'Paid amount cannot be negative.';
+        } elseif ($paidAmount > $maxAmount) {
+            $paymentErrors[] = 'Paid amount is too large.';
+        }
     }
-    if ($paidAmount > $finalCost) {
+
+    if (empty($paymentErrors) && $paidAmount > $finalCost) {
         $paymentErrors[] = 'Paid amount cannot exceed final cost.';
     }
 
     if (empty($paymentErrors)) {
-        $stmt = $pdo->prepare('UPDATE jobs SET final_cost = ?, paid_amount = ? WHERE id = ?');
-        $stmt->execute([$finalCost, $paidAmount, $jobId]);
-        header('Location: job_details.php?id=' . $jobId . '&paymentUpdated=1');
-        exit;
+        try {
+            $stmt = $pdo->prepare('UPDATE jobs SET final_cost = ?, paid_amount = ? WHERE id = ?');
+            $stmt->execute([$finalCost, $paidAmount, $jobId]);
+            header('Location: job_details.php?id=' . $jobId . '&paymentUpdated=1');
+            exit;
+        } catch (PDOException $e) {
+            $paymentErrors[] = 'Could not save payment details. Please try again.';
+        }
     }
 }
 
@@ -67,6 +90,10 @@ if (!$job) {
 // Balance is derived in PHP, never stored (per project rules).
 $balance = $job ? ($job['final_cost'] - $job['paid_amount']) : 0;
 
+// After a failed payment submit, keep what the user typed instead of the saved values.
+$finalValue = (!empty($paymentErrors) && $job) ? ($_POST['final_cost'] ?? '')  : ($job['final_cost'] ?? '');
+$paidValue  = (!empty($paymentErrors) && $job) ? ($_POST['paid_amount'] ?? '') : ($job['paid_amount'] ?? '');
+
 require 'includes/header.php';
 ?>
 
@@ -84,7 +111,8 @@ require 'includes/header.php';
             <div class="error"><?= htmlspecialchars($statusError) ?></div>
         <?php endif; ?>
 
-        <table class="data-table">
+        <div class="table-wrap">
+        <table class="data-table detail-table">
             <tbody>
                 <tr><th>Job No</th><td><?= htmlspecialchars($job['job_no']) ?></td></tr>
                 <tr><th>Status</th><td><?= htmlspecialchars($job['status']) ?></td></tr>
@@ -101,6 +129,7 @@ require 'includes/header.php';
                 <tr><th>Balance</th><td>&#8377;<?= number_format((float) $balance, 2) ?></td></tr>
             </tbody>
         </table>
+        </div>
 
         <form method="post" action="job_details.php?id=<?= (int) $jobId ?>" id="statusForm" class="status-form">
             <label for="statusSelect">Update Status</label>
@@ -128,21 +157,21 @@ require 'includes/header.php';
 
             <label for="final_cost">Final Cost</label>
             <input type="number" step="0.01" min="0" name="final_cost" id="final_cost"
-                   value="<?= htmlspecialchars($job['final_cost']) ?>" required>
+                   value="<?= htmlspecialchars((string) $finalValue) ?>" required>
 
             <label for="paid_amount">Paid Amount (total to date)</label>
             <input type="number" step="0.01" min="0" name="paid_amount" id="paid_amount"
-                   value="<?= htmlspecialchars($job['paid_amount']) ?>" required>
+                   value="<?= htmlspecialchars((string) $paidValue) ?>" required>
 
             <p><strong>Balance: &#8377;<span id="balanceDisplay"><?= number_format((float) $balance, 2) ?></span></strong></p>
 
             <button type="submit">Update Payment</button>
         </form>
 
-        <p>
+        <div class="btn-row">
             <a href="print_job.php?id=<?= (int) $jobId ?>" class="btn" target="_blank">Print Job Card</a>
             <a href="jobs.php" class="btn">Back to Job List</a>
-        </p>
+        </div>
     <?php endif; ?>
 </div>
 

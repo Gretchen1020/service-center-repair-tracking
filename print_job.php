@@ -29,9 +29,9 @@ function orDash($v) { return trim((string)$v) === '' ? '-' : e($v); }
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title><?= $job ? 'JobCard_' . e($job['job_no']) : 'Job Card' ?></title>
-    <link rel="stylesheet" href="assets/css/print.css">
+    <link rel="stylesheet" href="assets/css/print.css?v=<?= (int) @filemtime(__DIR__ . '/assets/css/print.css') ?>">
 </head>
 <body>
 

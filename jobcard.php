@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $technician   = trim($_POST['technician'] ?? '');
     $estimate     = $_POST['estimate'] ?? '';
 
-    if ($customer_id === '') {
+    if ($customer_id === '' || !ctype_digit((string) $customer_id) || (int) $customer_id < 1) {
         $errors[] = "Please select a customer.";
     }
     if ($device_name === '') {
@@ -26,8 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($complaint === '') {
         $errors[] = "Complaint is required.";
     }
+    if (mb_strlen($device_name) > 100 || mb_strlen($model) > 100 || mb_strlen($technician) > 100) {
+        $errors[] = "Device name, model and technician must each be 100 characters or fewer.";
+    }
     if ($estimate === '' || !is_numeric($estimate) || $estimate < 0) {
         $errors[] = "Estimate must be a valid non-negative number.";
+    } elseif ($estimate > 99999999.99) {
+        $errors[] = "Estimate is too large.";
     }
 
     if (empty($errors)) {
@@ -72,6 +77,7 @@ if (isset($_GET['success'])) {
 require_once 'includes/header.php';
 ?>
 
+<div class="card">
 <h2>New Job Card</h2>
 
 <?php if ($success): ?>
@@ -79,11 +85,11 @@ require_once 'includes/header.php';
 <?php endif; ?>
 
 <?php if (!empty($errors)): ?>
-    <ul class="error">
+    <div class="error">
         <?php foreach ($errors as $e): ?>
-            <li><?= htmlspecialchars($e) ?></li>
+            <div><?= htmlspecialchars($e) ?></div>
         <?php endforeach; ?>
-    </ul>
+    </div>
 <?php endif; ?>
 
 <?php if (empty($customers)): ?>
@@ -103,18 +109,18 @@ require_once 'includes/header.php';
     </select>
 
     <label for="device_name">Device Name *</label>
-    <input type="text" name="device_name" id="device_name"
+    <input type="text" name="device_name" id="device_name" maxlength="100"
            value="<?= htmlspecialchars($_POST['device_name'] ?? '') ?>" required>
 
     <label for="model">Model</label>
-    <input type="text" name="model" id="model"
+    <input type="text" name="model" id="model" maxlength="100"
            value="<?= htmlspecialchars($_POST['model'] ?? '') ?>">
 
     <label for="complaint">Complaint *</label>
     <textarea name="complaint" id="complaint" required><?= htmlspecialchars($_POST['complaint'] ?? '') ?></textarea>
 
     <label for="technician">Technician</label>
-    <input type="text" name="technician" id="technician"
+    <input type="text" name="technician" id="technician" maxlength="100"
            value="<?= htmlspecialchars($_POST['technician'] ?? '') ?>">
 
     <label for="estimate">Estimate (₹) *</label>
@@ -125,6 +131,7 @@ require_once 'includes/header.php';
 </form>
 
 <?php endif; ?>
+</div>
 
 <script src="assets/js/jobcard-validate.js"></script>
 

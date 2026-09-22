@@ -11,9 +11,9 @@ else:
     foreach ($customers as $c):
 ?>
     <tr>
-        <td><?= htmlspecialchars($c['name']) ?></td>
-        <td><?= htmlspecialchars($c['mobile']) ?></td>
-        <td><?= htmlspecialchars($c['address'] ?? '') ?></td>
+        <td data-label="Name"><?= htmlspecialchars($c['name']) ?></td>
+        <td data-label="Mobile"><?= htmlspecialchars($c['mobile']) ?></td>
+        <td data-label="Address"><?= htmlspecialchars($c['address'] ?? '') ?></td>
         <td>
             <a href="customers.php?edit=<?= (int) $c['id'] ?>" class="btn">Edit</a>
             <form method="POST" action="customers.php" class="inline-form"

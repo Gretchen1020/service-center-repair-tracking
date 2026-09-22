@@ -55,6 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'delet
     elseif (!preg_match('/^[0-9+\-\s]{7,20}$/', $mobile)) {
         $error = 'Please enter a valid mobile number.';
     } 
+    elseif (mb_strlen($name) > 100) {
+        $error = 'Name must be 100 characters or fewer.';
+    } 
+    elseif (mb_strlen($address) > 255) {
+        $error = 'Address must be 255 characters or fewer.';
+    } 
     else {
         if ($customerId > 0) {
             // Update existing customer
@@ -117,7 +123,7 @@ require 'includes/header.php';
         <input type="hidden" name="customer_id" value="<?= (int) ($editCustomer['id'] ?? 0) ?>">
 
         <label for="name">Name *</label>
-        <input type="text" id="name" name="name" required
+        <input type="text" id="name" name="name" required maxlength="100"
                value="<?= htmlspecialchars($editCustomer['name'] ?? '') ?>">
 
         <label for="mobile">Mobile *</label>
@@ -126,12 +132,14 @@ require 'includes/header.php';
                value="<?= htmlspecialchars($editCustomer['mobile'] ?? '') ?>">
 
         <label for="address">Address</label>
-        <textarea id="address" name="address" rows="2"><?= htmlspecialchars($editCustomer['address'] ?? '') ?></textarea>
+        <textarea id="address" name="address" rows="2" maxlength="255"><?= htmlspecialchars($editCustomer['address'] ?? '') ?></textarea>
 
-        <button type="submit"><?= $editId > 0 ? 'Update Customer' : 'Add Customer' ?></button>
-        <?php if ($editId > 0): ?>
-            <a href="customers.php" class="btn">Cancel</a>
-        <?php endif; ?>
+        <div class="form-actions">
+            <button type="submit"><?= $editId > 0 ? 'Update Customer' : 'Add Customer' ?></button>
+            <?php if ($editId > 0): ?>
+                <a href="customers.php" class="btn">Cancel</a>
+            <?php endif; ?>
+        </div>
     </form>
 </div>
 
@@ -140,7 +148,8 @@ require 'includes/header.php';
 
     <input type="text" id="customerSearch" placeholder="Search by name or mobile..." autocomplete="off">
 
-    <table class="data-table" id="customerTable">
+    <div class="table-wrap">
+    <table class="data-table stack-table" id="customerTable">
         <thead>
             <tr>
                 <th>Name</th>
@@ -153,6 +162,7 @@ require 'includes/header.php';
             <?php include 'includes/customer_rows.php'; ?>
         </tbody>
     </table>
+    </div>
     <p id="noResults" style="display:none; color:#666;">No customers found.</p>
 </div>
 
