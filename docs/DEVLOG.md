@@ -306,7 +306,7 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
   - jobcard.php - error list changed from <ul><li> to <div> blocks, matching the style used on every other page (no bullet points)
 - Session/structure fixes: session_regenerate_id(true) on login; APP_BASE in includes/auth.php now computed from the folder's position under the document root instead of hardcoded, so the project works under any folder name; dashboard.php now includes includes/footer.php
 - Print job card page (print_job.php, assets/css/print.css) kept as a fixed 800px print-preview rather than reflowed to fit the phone width, since a print preview should represent the actual printed page. On phones it now scrolls both sideways and vertically; long text wraps inside table cells so it can't force the page wider than necessary; a small (12px) margin is kept on both sides via a min-width on body; a minimum-scale=1.0 viewport tag stops the browser auto-zooming the page out, which removes a large empty area that used to appear below the sheet. Actual printing is unchanged (A4, unaffected by any of the above)
-- CSS/JS cache-busting: style.css and print.css links now carry a ?v=<file modified time> so browsers pick up changes without a manual hard refresh
+- CSS/JS cache-busting: the print.css link (used by print_job.php) carries a ?v=<file modified time> so browsers pick up changes without a manual hard refresh.
 - Day9_Responsive_Regression_Module_Testing.docx - 30 test cases across 6 sections (phone layout, tablet/desktop/zoom, validation, security/session, end-to-end, sample data/fresh install)
 
 ### Design Decisions
@@ -334,3 +334,30 @@ as the first item above — `html.trim() === ''` against `customer_rows.php`'s i
 ### Testing Evidence
 
 - See `Day9_Responsive_Regression_Module_Testing.docx` 
+
+---
+
+## Day 10 — README & Final Submission
+
+### Completed Today
+
+- Rebuilt docs/sample_data.sql with fixed/explicit ids so job numbers (JC-0001–JC-0007) match what the Day 10 test doc references by name. Added missing-optional-field cases on a couple of rows to exercise those paths during the live demo: one customer with no address, one job with no technician, one job with no model. Covers all 5 statuses and the three payment states named in TC-03 (fully paid, partially paid, quoted-but-unpaid).
+- Reviewed the full codebase against documented decisions: confirmed prepared statements, session protection, status whitelist validation, and PHP-calculated (never stored) balance are consistent across every page and both AJAX endpoints.
+
+- Documented a setup gotcha: since docs/schema.sql uses CREATE TABLE IF NOT EXISTS / INSERT IGNORE (Day 9), re-importing it does not clear existing rows. Loading docs/sample_data.sql onto a database with leftover data will hit duplicate-key errors on the fixed ids (1–7). Correct procedure for a clean slate: drop service_center_db entirely in phpMyAdmin (Operations tab → Drop the database), re-import docs/schema.sql, then docs/sample_data.sql.
+
+### Design Decisions
+
+- Kept explicit id values in sample_data.sql (rather than auto-increment + name lookup) so job numbers are guaranteed to match the ones already referenced by name in the test doc.
+
+### Pending / Blocker
+
+- N/A
+
+### Pending Resolved
+
+- N/A
+
+### Testing Evidence
+
+- See `Day10_FinalDemo_Module_Testing.docx`
